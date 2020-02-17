@@ -1,7 +1,7 @@
 const express       =   require('express');
 const session = require('express-session');
 const app = express();
-const  cors = require('cors')
+// const  cors = require('cors')
 // const sessionOptions = {
 //     secret: '123456',
 //     cookie: {
@@ -22,8 +22,7 @@ const bodyParser    =   require('body-parser');
      app.use(cookieParser ());
      app.use(bodyParser.json());
      app.use(bodyParser.urlencoded({ extended: true }));
-     app.use(cors());
-
+     // app.use(cors());
 
 let  login,UseR,z,f,s,x,password,user,randomNumber,UsER,post,options
     ,messageText,profile,idProf,userID,UserID,people
