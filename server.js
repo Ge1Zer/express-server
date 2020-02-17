@@ -1,23 +1,24 @@
 const express       =   require('express');
 const session = require('express-session');
 const app = express();
-const sessionOptions = {
-    secret: '123456',
-    cookie: {
-        maxAge:269999999999
-    },
-    saveUninitialized: true,
-    resave:true
-};
+const  cors = require('cors')
+// const sessionOptions = {
+//     secret: '123456',
+//     cookie: {
+//         maxAge:269999999999
+//     },
+//     saveUninitialized: true,
+//     resave:true
+// };
 
 const cookieParser  =   require ('cookie-parser');
 const bodyParser    =   require('body-parser');
 
-const ALLOWED_ORIGINS = [
-    'https://geizer6991.github.io',
-]
+// const ALLOWED_ORIGINS = [
+//     'https://geizer6991.github.io',
+// ]
 
-     app.use(session(sessionOptions));
+     // app.use(session(sessionOptions));
      app.use(cookieParser ());
      app.use(bodyParser.json());
      app.use(bodyParser.urlencoded({ extended: true }));
@@ -273,8 +274,6 @@ app.route('/login')
          ServerMessage =
            {status: false,text: "It`s not cookie User"}
        }
-        res.set('Access-Control-Allow-Credentials', 'true')
-        res.set('Access-Control-Allow-Origin', req.headers.origin)
 
         res.json([ServerMessage,UserLoginId]);
     })
@@ -301,8 +300,6 @@ app.route('/login')
       }else{ServerMessage=
           {text:"It`s not Login or Password ",status:undefined}
       }
-        res.set('Access-Control-Allow-Credentials', 'true')
-        res.set('Access-Control-Allow-Origin', req.headers.origin)
 
         res.json([ServerMessage,UserLoginId ]);
     next();
