@@ -246,17 +246,7 @@ let ServerMessage,UserLoginId,ProfilePage,m={};
         },
     ];
 //###############################################################
-//     app.route('/')
-//     // создание куков или предоставление логина при проверке куков
-//         .get((req,res)=>{
-//             cookie=req.cookies.cookieName;
-//             if(!req.cookies.cookieName) {
-//                 res.cookie('cookieName',randomNumber,options).send()
-//                 res.header("Access-Control-Allow-Origin", "*");
-//                 res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-//
-//             }
-//         });
+
     //###############################################################
 app.route('/exit')
     // очищение куков на стороне браузера
