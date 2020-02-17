@@ -10,11 +10,7 @@ let app = express();
      app.use(bodyParser.json());
      app.use(bodyParser.urlencoded({ extended: true }));
      app.use(cors());
-     app.use(function(req, res, next) {
-         res.header("Access-Control-Allow-Origin", "*");
-         res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-         res.send()
-     });
+
 
 
 let  login,UseR,z,f,s,x,password,user,randomNumber,UsER,post,options
@@ -239,12 +235,17 @@ let ServerMessage,UserLoginId,ProfilePage,m={};
         },
     ];
 //###############################################################
-    // app.route('/')
-    // // создание куков или предоставление логина при проверке куков
-    //     .get((req,res, next)=>{
-    //         cookie=req.cookies.cookieName;
-    //         if(!req.cookies.cookieName) {res.cookie('cookieName',randomNumber,options).send()}
-    //     });
+    app.route('/')
+    // создание куков или предоставление логина при проверке куков
+        .get((req,res, next)=>{
+            cookie=req.cookies.cookieName;
+            if(!req.cookies.cookieName) {
+                res.cookie('cookieName',randomNumber,options).send()
+                res.header("Access-Control-Allow-Origin", "*");
+                res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+
+            }
+        });
     //###############################################################
 app.route('/exit')
     // очищение куков на стороне браузера
