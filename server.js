@@ -235,17 +235,17 @@ let ServerMessage,UserLoginId,ProfilePage,m={};
         },
     ];
 //###############################################################
-    app.route('/')
-    // создание куков или предоставление логина при проверке куков
-        .get((req,res, next)=>{
-            cookie=req.cookies.cookieName;
-            if(!req.cookies.cookieName) {
-                res.cookie('cookieName',randomNumber,options).send()
-                res.header("Access-Control-Allow-Origin", "*");
-                res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-
-            }
-        });
+//     app.route('/')
+//     // создание куков или предоставление логина при проверке куков
+//         .get((req,res, next)=>{
+//             cookie=req.cookies.cookieName;
+//             if(!req.cookies.cookieName) {
+//                 res.cookie('cookieName',randomNumber,options).send()
+//                 res.header("Access-Control-Allow-Origin", "*");
+//                 res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+//
+//             }
+//         });
     //###############################################################
 app.route('/exit')
     // очищение куков на стороне браузера
@@ -272,6 +272,8 @@ app.route('/login')
          ServerMessage =
            {status: false,text: "It`s not cookie User"}
        }
+        res.set('Access-Control-Allow-Methods', 'GET, OPTIONS')
+        res.set('Access-Control-Allow-Headers', 'Content-Type')
        res.json([ServerMessage,UserLoginId]);
     })
     // проверка есть ли в списке юзер  с таким логином или паролем
@@ -297,7 +299,9 @@ app.route('/login')
       }else{ServerMessage=
           {text:"It`s not Login or Password ",status:undefined}
       }
-    res.json([ServerMessage,UserLoginId ]);
+        res.set('Access-Control-Allow-Methods', 'GET, OPTIONS')
+        res.set('Access-Control-Allow-Headers', 'Content-Type')
+        res.json([ServerMessage,UserLoginId ]);
     next();
     });
 //###############################################################
