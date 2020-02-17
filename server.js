@@ -1,16 +1,27 @@
 const express       =   require('express');
+const session = require('express-session');
+const app = express();
+const sessionOptions = {
+    secret: '123456',
+    cookie: {
+        maxAge:269999999999
+    },
+    saveUninitialized: true,
+    resave:true
+};
+
 const cookieParser  =   require ('cookie-parser');
 const bodyParser    =   require('body-parser');
-const cors = require('cors')
 
+const ALLOWED_ORIGINS = [
+    'https://geizer6991.github.io',
+]
 
-
-let app = express();
+     app.use(session(sessionOptions));
      app.use(cookieParser ());
      app.use(bodyParser.json());
      app.use(bodyParser.urlencoded({ extended: true }));
      app.use(cors());
-
 
 
 let  login,UseR,z,f,s,x,password,user,randomNumber,UsER,post,options
@@ -237,7 +248,7 @@ let ServerMessage,UserLoginId,ProfilePage,m={};
 //###############################################################
 //     app.route('/')
 //     // создание куков или предоставление логина при проверке куков
-//         .get((req,res, next)=>{
+//         .get((req,res)=>{
 //             cookie=req.cookies.cookieName;
 //             if(!req.cookies.cookieName) {
 //                 res.cookie('cookieName',randomNumber,options).send()
@@ -272,9 +283,10 @@ app.route('/login')
          ServerMessage =
            {status: false,text: "It`s not cookie User"}
        }
-        res.set('Access-Control-Allow-Methods', 'GET, OPTIONS')
-        res.set('Access-Control-Allow-Headers', 'Content-Type')
-       res.json([ServerMessage,UserLoginId]);
+        res.set('Access-Control-Allow-Credentials', 'true')
+        res.set('Access-Control-Allow-Origin', req.headers.origin)
+
+        res.json([ServerMessage,UserLoginId]);
     })
     // проверка есть ли в списке юзер  с таким логином или паролем
     .post((req,res,next)=>{
@@ -299,8 +311,9 @@ app.route('/login')
       }else{ServerMessage=
           {text:"It`s not Login or Password ",status:undefined}
       }
-        res.set('Access-Control-Allow-Methods', 'GET, OPTIONS')
-        res.set('Access-Control-Allow-Headers', 'Content-Type')
+        res.set('Access-Control-Allow-Credentials', 'true')
+        res.set('Access-Control-Allow-Origin', req.headers.origin)
+
         res.json([ServerMessage,UserLoginId ]);
     next();
     });
