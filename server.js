@@ -10,8 +10,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 const cors = require('cors');
-app.use(cors())
-
+app.use(cors());
 
 
 let  login,UseR,z,f,s,x,password,user,randomNumber,UsER,post,options
@@ -383,45 +382,6 @@ app.post('/profile/status',(req,res)=>{
     }
     res.json(ServerMessage);
 });
-//###############################################################
-// app.route('message/friend')
-// // возвращает пользователя с таким ID
-//     .get((req, res)=>{
-//         userID?userID=parseInt(req.params.id):userID=parseInt(req.cookies.userLogin);
-//         ProfilePage={
-//             id:NaN
-//             ,status:''
-//             ,location:{city:'',country:''}
-//             ,fullName:{name:'',lastName:''}
-//             ,friend:[]
-//         };
-//         if (userID) {
-//             UseR = fullname.filter(x => x.id === userID);
-//             pic = fottoSS.filter(x => x.id === userID);
-//             ProfilePage={
-//                 id:UseR[0].id
-//                 ,status:UseR[0].aboutUser.statuss
-//                 ,location:{city:UseR[0].aboutUser.city,country:UseR[0].aboutUser.country}
-//                 ,fullName:{name:UseR[0].aboutUser.name,lastName:UseR[0].aboutUser.lastName}
-//                 ,friend:UseR[0].aboutUser.friend
-//                 ,picture:pic[0].max
-//             };
-//             ServerMessage = {
-//                 status: true
-//                 ,text: "It`s profile List"
-//             }
-//         }else{
-//             ServerMessage = {
-//                 status: false
-//                 ,text: "It`s not profile List"
-//
-//             }
-//         }
-//         res.json([ServerMessage, ProfilePage]);
-//     });
-//###############################################################
-    //получить список друзей
-
 app.route('/message/friend')
    .get((req,res)=> {
       userID = parseInt(req.cookies.userLogin);
