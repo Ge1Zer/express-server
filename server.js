@@ -12,6 +12,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const cors = require('cors');
 app.use(cors());
 
+    app.options('*', (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+    res.send('ok');
+});
 
 let  login,UseR,z,f,s,x,password,user,randomNumber,UsER,post,options
     ,messageText,profile,idProf,userID,UserID,people
@@ -33,6 +38,17 @@ let ServerMessage,UserLoginId,ProfilePage,m={};
 };
     randomNumber=Math.random().toString();
     randomNumber=randomNumber.substring(2,randomNumber.length);
+
+
+app.get('/public', function(req, res) {
+    res.set('Access-Control-Allow-Origin', '*')
+    res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+    res.set('Access-Control-Allow-Headers', 'Content-Type')
+    res.send(JSON.stringify({
+        message: 'This is public info'
+    }))
+
+
 
 //###############################################################
     useRR       =[
@@ -242,6 +258,7 @@ app.route('/exit')
    .get((req,res)=>{
        res.cookie('userLogin','',optionsMoment);
        ServerMessage={text:'User deleted',status:true};
+
        res.json(ServerMessage)
    });
 //###############################################################
@@ -262,7 +279,9 @@ app.route('/login')
          ServerMessage =
            {status: false,text: "It`s not cookie User"}
        }
-
+        res.set('Access-Control-Allow-Origin', '*')
+        res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        res.set('Access-Control-Allow-Headers', 'Content-Type')
         res.json([ServerMessage,UserLoginId]);
     })
     // проверка есть ли в списке юзер  с таким логином или паролем
@@ -288,7 +307,9 @@ app.route('/login')
       }else{ServerMessage=
           {text:"It`s not Login or Password ",status:undefined}
       }
-
+        res.set('Access-Control-Allow-Origin', '*')
+        res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        res.set('Access-Control-Allow-Headers', 'Content-Type')
         res.json([ServerMessage,UserLoginId ]);
     next();
     });
