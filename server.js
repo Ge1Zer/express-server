@@ -9,14 +9,14 @@ const bodyParser    =   require('body-parser');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-const cors = require('cors');
-app.use(cors());
+// const cors = require('cors');
+// app.use(cors());
 
-    app.options('*', (req, res) => {
-    res.set('Access-Control-Allow-Origin', '*');
-    res.set("Access-Control-Allow-Headers", "Content-Type");
-    res.send('ok');
-});
+//     app.options('*', (req, res) => {
+//     res.set('Access-Control-Allow-Origin', 'https://geizer6991.github.io/app-on-react');
+//     res.set("Access-Control-Allow-Headers", "Content-Type");
+//     res.send('ok');
+// });
 
 let  login,UseR,z,f,s,x,password,user,randomNumber,UsER,post,options
     ,messageText,profile,idProf,userID,UserID,people
@@ -41,7 +41,7 @@ let ServerMessage,UserLoginId,ProfilePage,m={};
 
 
 app.get('/public', function(req, res) {
-    res.set('Access-Control-Allow-Origin', '*')
+    res.set('Access-Control-Allow-Origin', 'https://geizer6991.github.io/app-on-react')
     res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
     res.set('Access-Control-Allow-Headers', 'Content-Type')
     res.send(JSON.stringify({
@@ -279,7 +279,7 @@ app.route('/login')
          ServerMessage =
            {status: false,text: "It`s not cookie User"}
        }
-        res.set('Access-Control-Allow-Origin', '*')
+        res.set('Access-Control-Allow-Origin', 'https://geizer6991.github.io/app-on-react')
         res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
         res.set('Access-Control-Allow-Headers', 'Content-Type')
         res.json([ServerMessage,UserLoginId]);
@@ -307,7 +307,7 @@ app.route('/login')
       }else{ServerMessage=
           {text:"It`s not Login or Password ",status:undefined}
       }
-        res.set('Access-Control-Allow-Origin', '*')
+        res.set('Access-Control-Allow-Origin', 'https://geizer6991.github.io/app-on-react')
         res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
         res.set('Access-Control-Allow-Headers', 'Content-Type')
         res.json([ServerMessage,UserLoginId ]);
