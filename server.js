@@ -1,14 +1,13 @@
-const User = require('./models/User');
 
-const All = require('./models/All');
+const User = require('./models/User');
+const Party = require('./models/Party');
+const config= require('config');
 
 const express       =   require('express');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
-const config = require('config');
 const mongoose = require('mongoose');
-const ObjectId = mongoose.Types.ObjectId;
-
+const nodemailer = require('nodemailer');
 
 const app = express();
 
@@ -18,12 +17,35 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 const PORT = process.env.PORT || config.get('port') || 5000;
 const MONGO = config.get('mongoUri');
+const user =config.get('user')
+const refresh =config.get('refreshToken')
+const client = config.get('clientId')
+const secret = config.get('clientSecret')
 
-// app.use(function(req, res, next) {
-//     res.header("Access-Control-Allow-Origin", "http://localhost:3000"); // update to match the domain you will make the request from
-//     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-//     next();
-// });
+app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "http://localhost:3000"); // update to match the domain you will make the request from
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+});
+
+
+let transporter = nodemailer.createTransport(
+    {
+    service: 'Gmail',
+    auth: {
+      type:'OAuth2'
+      , user:user
+      , refreshToken:refresh
+      , clientId:client
+      , clientSecret: secret
+    }
+});
+
+
+options = {maxAge: 900000, httpOnly: true,};
+optionsMoment = {maxAge: 20000, httpOnly: true,};
+randomNumber=Math.random().toString();
+randomNumber=randomNumber.substring(2,randomNumber.length);
 
 async function start() {
     try {
@@ -33,28 +55,22 @@ async function start() {
             , useCreateIndex: true
             , autoIndex: false
         });
-        app.listen(PORT, console.log(`Server start ${PORT}`))
+        app.listen(PORT, console.log(`Server connected to mongoose and start on ${PORT} port`))
     } catch (e) {
-        console.log('server error', e.message)
+        console.log('server error', e.message);
         process.exit(1);
     }
 }
-
 start();
-
-options = {maxAge: 900000, httpOnly: true,};
-optionsMoment = {maxAge: 20000, httpOnly: true,};
-randomNumber=Math.random().toString();
-randomNumber=randomNumber.substring(2,randomNumber.length);
 
 //###############################################################
 app.route('/login')
     .get((req, res) => {
         let id = req.cookies.code;
         if (id) {
-            User.find({_id: id}).exec((err, user) => {
+            User.findOne({_id: id}).exec((err, user) => {
                 res.send({
-                    _id: user[0]._id
+                    _id: user._id
                     , status: true
                     , message: "User, Entry"
                 })
@@ -64,240 +80,291 @@ app.route('/login')
         }
     })
     .post((req, res) => {
-        let log = String(req.body.login);
-        let pass = String(req.body.pass);
-
-        User.find({login: log, password: pass}).exec((err, user) => {
-
-            if (user.length !== 0) {
-                res.cookie('code', user[0]._id, options);
-
+        let Login = req.body.Login;
+        let Password = req.body.Password;
+        User.findOne({'Login': Login, 'Password': Password}).exec((err, user) => {
+            if (user) {
+                res.cookie('code', user._id, options);
                 res.send({
-                    _id: user[0]._id
+                    _id: user._id
                     , status: true
                     , message: "User, Entry"
                 })
             } else {
-                res.json({mess: 'Enrty, corrected login or password', status: false})
+                res.json({mess: 'You are not logged in to the app, corrected login or password', status: false})
             }
         })
     });
 //#######################################################################
 app.route('/registration')
     .post((req, res) => {
-        let log = req.body.login;
-        let pass = req.body.pass;
-        let name = req.body.name;
+        let Login    = req.body.Login;
+        let Password = req.body.Password;
+        let Nickname = req.body.Nickname;
 
-        User.find({login: log, password: pass}).exec((err, user) => {
+        let pass_gen=(len)=>{
+            let string = 'abdehkimnopswxzABDEFGHKMNPOQRSTWXZ123456789';
+            let str = '';
+            for (let i = 0; i <len; i++) {
+                let pos = Math.floor(Math.random() * string.length);
+                str += string.substring(pos,pos+1);
+            }
+            return str;
+        }
 
-            if (user.length === 0) {
+        let mailOptions={
+            from: `${Nickname} <${Login}>`,
+            to: Login,
+            subject: 'End of registration',
+            text: 'To complete your registration please follow the link',
+            html: 'This <a>ССЫЛКА НА ЗАВЕРШЕНИЕ РЕГИСТРАЦИИ</a>.',
+        };
+        transporter.sendMail(mailOptions, (err,info)=>{
+            transporter.close()
+        });
+
+        User.findOne({'Login': Login, 'Password': Password}).exec((err, user) => {
+            if (!user) {
                 let NewUser = new User({
-                    login: log
-                    , password: pass
-                    , description: {
-                        name: name
-                        , photo: null
-                        , Count: 'Third Planet from the Sun'
-                        , status: 'World for me, I`m for World'
+                    'Login': Login
+                    , 'Password': Password
+                    , 'Description': {
+                        'Nickname': [`${Nickname}`]
+                        ,'Location':{
+                            'Count':'what country do you are living ?'
+                            ,'City':'what country do you are living ? '
+                        }
+                        ,'Gender':'X'
+                        ,'Age':{
+                            'day':0
+                            ,'month':''
+                            ,'year':0
+                            ,'age':0
+                        }
+                        ,'Skills':['List Skills']
+                        ,'Photo':{
+                            'origin':''
+                            ,'default':'https://99px.ru/sstorage/1/2018/09/image_12609180120369461163.gif'
+                        }
+                        ,'PhotoMin': {
+                            'origin':''
+                            ,'default':'https://99px.ru/sstorage/1/2018/09/image_12609180120369461163.gif'
+                        }
+                        ,'Friend': []
+                        ,'Status': 'Describe your condition'
+                        ,'Tags':[]
+                    }
+                    , 'RegistrationStatus':{
+                        'authorization':false
+                        ,'key':0
                     }
                 });
-                NewUser.save((err) => {
-                    if (!err) {
-                        console.log('Exelent')
-                    } else {
-                        console.log('err01', err)
-                    }
-                });
-                res.send({mess: 'OK', status: true})
+                NewUser.save( (err) => { !err ? console.log('Exelent') : console.log('err01', err) } );
+                res.send( {mess: 'OK', status: true} )
             } else {
-                res.send({mess: 'User exists. login with your username or password', status: true})
+                res.send( {mess: 'User exists. login with your username or password', status: false} )
             }
         })
     });
+app.route('/protection/:key')
+    .get((res,req)=>{
+        User.findOne({RegistrationStatus: req.query.key}).exec((err, prof) => {
+            if(prof) {
+                propf.RegistrationStatus.key = 0;
+                prof.RegistrationStatus.authorization = true;
+                prof.save();
+                res.send(true)
+            }else{
+                res.send(false)
+            }
+        });
+})
 //############################################################################
 app.route('/exit')
-// очищение куков на стороне браузера
     .get((req, res)=>{
-        res.cookie('code', undefined, optionsMoment);
+        res.cookie('code', '', optionsMoment);
         res.json({mess: 'User deleted', status: false})
     });
 //###############################################################
 app.route('/profile/:profile')
     .get((req, res) => {
-        let profile = new ObjectId(req.params.profile);
-        User.findOne({_id: profile}).exec((err, prof) => {
-            console.log(prof._id, '22')
-            if (prof) {
-                // console.log(prof,'33')
-                res.send({profile: prof.description, mess: 'Profile found', status: true})
+        let IdProfile = req.params.profile;
+        User.findOne({_id: IdProfile}).exec((err, prof) => {
+            prof ? res.send( {Profile: prof['Description'], mess: 'Profile found', status: true} )
+                 : res.send( {mess: 'profile, in corrected', status: false} )
+        });
+    });
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+app.post('/update/info', (req, res) => {
+    let id      = req.cookies.code;
+    let inform  = req.body.inform;
+        User.findOne( {_id: id} ).exec( (err, user) => {
+            if (user) {
+                let description = user.Description;
+                description.Nickname = inform.nickname              ||'NoName';
+                description.Location.Count = inform.location.Count  ||' ';
+                description.Location.City = inform.location.City    ||' ';
+                description.Gender = inform.gender                  ||'X';
+                description.Age.day = inform.age.day                ||0;
+                description.Age.month = inform.age.month            ||0;
+                description.Age.year = inform.age.year              ||0;
+                description.Age.age = inform.age.age                ||0;
+                description.Skills = inform.skills                  ||0;
+                description.Photo.maxSize= inform.photo             ||'https://99px.ru/sstorage/1/2018/09/image_12609180120369461163.gif';
+                description.Status = inform.status                  ||' ';
+                description.Tags = inform.tags                      ||' ';
+                user.save();
+                res.json( {mess: 'Set info', status: true } )
             } else {
-                res.send({mess: 'profile, in corrected', status: false})
+                res.json({mess: 'error cookie undefined', status: false, user: ''})
             }
+        })
+});
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+app.route('/people')
+   .post((req, res)=> {
+       let id = req.cookies.code;
+
+       let list = req.body.list;
+       let tags = req.body.tags;
+       let nickname = req.body.nickname;
+
+       let peopleFriend=[],user=[];
+       let fu=()=>{
+           return(
+               nickname.length!==0 && tags.length!==0 && {'Description.Tags': {$all: tags}, 'Description.Nickname': {$all: nickname}}
+               ||nickname.length!==0 && tags.length===0 && { 'Description.Nickname': {$all: nickname} }
+               ||nickname.length===0 && tags.length!==0 && {  'Description.Tags': {$all: tags} }
+               ||nickname.length===0 && tags.length===0 && {}
+           )
+       };
+       User.findOne({_id:id}).then(u => {
+           user=[...u.Description.Friend];
+           User.find(fu()).sort({'Description.Nickname':1}).skip(list*2-2).limit(2).then(people=>{
+               if (people.length !== 0) {
+                   for (let i = 0; i < people.length; i++) {
+                       let a = user.filter(r =>r+'' === people[i]._id+'');
+                       a.length !== 0
+                           ? peopleFriend.push({
+                               _id: people[i]._id,
+                               Description: people[i].Description,
+                               friendStatus: true
+                           })
+                           : peopleFriend.push({
+                               _id: people[i]._id,
+                               Description: people[i].Description,
+                               friendStatus: false
+                           })
+                   }
+                   res.send({people: peopleFriend})
+               }else{
+                   res.send({people})
+               }
+               peopleFriend = []
+           })
+       });
+   });
+app.route('/subscribe')
+   .post((req,res)=>{
+       let id=req.cookies.code;
+       let profile=req.body.id;
+       User.find({_id:id}).exec((err, user) => {
+          let arr=[...user[0].Description.Friend];
+           let f=arr.indexOf(profile);
+           f<0
+               ?arr.push(profile)
+               :arr.splice(f,f+1);
+           user[0].Description.Friend=arr;
+           user[0].save();
+           err && res.json({mess:'NO',status:false})
+        });
+       res.json({mess:'OK',status:true})
+   });
+//###############################################################
+app.route('/message/friend')
+    .get((req,res)=>{
+        let code=req.cookies.code;
+        User.find({_id:code}).then(u => {
+            let r=[...u[0].Description.Friend];
+            u[0].save();
+            User.find({_id:r}).then(u => {
+                res.send({Friend: u})
+            })
+        })
+    });
+
+
+app.route('/message/party')
+    .get((req,res)=>{
+        let code=req.cookies.code;
+        Party.find({ListPeople: {$all:[code]}}).then(u => {
+                res.send({Party: u})
+            });
+    });
+
+app.route('/message/list')
+    .post((req,res)=> {
+        let code = req.cookies.code;
+        let id = req.body.id;
+        let list =req.body.list;
+        let tu = () => {return list.length===0 ?{ListPeople: list} :{_id: id, ListPeople: list} };
+        Party.findOne(tu()).then(r=> {
+            r===null?res.send({}):r.ListPeople.filter(r => r === code).length !== 0 && res.send(r)
         });
     });
 
-app.post('/photo/ava', (req, res, next) => {
-    let id = req.cookies.code;
-    console.log(id)
-    let photo = req.body.photo
-    console.log(photo)
-    User.findOne({_id: id}).exec((err, user) => {
-        console.log(user)
-        if (user) {
-            user.description.photo = photo;
-            user.save();
-        } else {
-            res.json({mess: 'error cookie undefined', status: false, user: ''})
+
+app.route('/message/send')
+   .post((req,res)=>{
+       let code = req.cookies.code;
+       let profile = req.body.profile;
+
+       let fi=(profile)=>{
+          if(profile.idParty) {
+             return  {_id:profile.idParty,ListPeople: {$all:profile.dialog} }
+          }else {
+             return  {ListPeople:{$all:profile.dialog} }
+          }
+       };
+       Party.findOne(fi(profile)).then(r => {
+           r.ListMessage.push({'user':code, 'text':profile.text,'img':profile.img,'date':profile.date});
+           r.NumberMessage++;
+           r.save();
+           res.send({status:'good'})
+       })
+   });
+
+app.route('/message/setting')
+    .post((req,res)=>{
+        let code = req.cookies.code;
+        let setting=req.body.setting;
+        setting.command==='FRI-ADD-PARTY' && new Party({
+                'admin':[code]
+                ,'ListPeople': setting.list
+                ,'NameParty': `${setting.nameParty}`
+                ,'AvaParty': 'https://im0-tub-ru.yandex.net/i?id=3817df0380ccc027fec4d3b6aebe468c&n=13'
+                ,'NumberOfPerson':setting.list.length
+                ,'ListMessage': []
+                ,'NumberMessage':0
+            }).save((err) => {
+                !err ? console.log('dialog Created') : console.log('err01', err);});
+
+
+        if(setting.command==='PAR-DEL') {
+            for (let i = 0; i < setting.list.length; i++) {
+                Party.deleteOne({_id: setting.list[i]}).then(
+                    r=> {res.send({mess:'good'})}
+                )
+            }
         }
-    })
-})
 
 
-app.post('/status', (req, res, next) => {
-    let id = req.cookies.code;
-    console.log(id)
-    let status = req.body.status
-    console.log(status)
-    User.findOne({_id: id}).exec((err, user) => {
-        console.log(user)
-        if (user) {
-            user.description.status = status;
-            user.save();
-        } else {
-            res.json({mess: 'error cookie undefined', status: false, user: ''})
-        }
-    })
-})
-
-
-// app.route('/message/:profile')
-//    .get((req,res)=>{
-//       let code=parseInt(req.cookies.code);
-//       let profile=parseInt(req.params.profile);
-//
-//       Message.find({_id1:code, _id2:profile})
-//           .exec((err,mess)=>{
-//               if(mess){
-//                   res.json({mess:mess.message, status:true })
-//               }else {
-//                   Message.find({_id1: profile, _id2: code})
-//                       .exec((err, mess) => {
-//                           if (mess) {
-//                               res.send({mess: mess.message, status: true})
-//                           } else {
-//                               new Message({_id1: code, _id2: profile, message: []});
-//                               Message.find({_id1: code, _id2: profile}).exec((err, mess) => {
-//                                   res.json({mess: mess.message, status: true})
-//                               })
-//                           }
-//                       })
-//               }
-//           })
-//    })
-//отправить сообщение
-//    .post((req,res,next)=>{
-//      userID = parseInt( req.cookies.userLogin );
-//      profile = parseInt( req.cookies.profileLogin );
-//      messageText=req.body.messageText;
-//
-//      if(userID && profile && messageText && messageText!==" ") {
-//        let X = messagEE.filter
-//        (x => (x.id1 === userID && x.id2 === profile) || (x.id1 === profile && x.id2 === userID));
-//         X[0].message.push({user: userID, message: messageText});
-//
-//         ServerMessage = {
-//              text: "User & Profile & message is not empty!"
-//             ,status: true
-//         }
-//      }
-//      else{
-//         ServerMessage = {
-//              text: "User & Profile & message is not corrected!(empty or undefined)"
-//             ,status: false
-//         }
-//      }
-//    res.json(ServerMessage);
-//    next();
-//    });
-// //###############################################################
-//     app.route('/subscribers')
-//     // это возвращает всех пользователей в списке по сколько нужно
-//     .get((req, res)=>{
-//         userID = parseInt(req.cookies.userLogin);
-//         z = parseInt(req.query.page);//страница
-//         x = parseInt(req.query.coun);//по сколько на странице
-//         People=[];
-//
-//         if(userID && userID!==0) {
-//           fullname.filter(x => (x.id === userID) ? ListFriendMass = x.aboutUser.friend : '');
-//
-//           for (let i = 0; i < fullname.length; i++) {
-//              ListStatus = ListFriendMass.filter(x => x === fullname[i].id);
-//               ListStatus.length !== 0
-//              ? ListPeople = {
-//              ...fullname[i].aboutUser
-//              , fotto: fottoSS[i].max
-//              , id: fullname[i].id
-//              , friend: true
-//                }
-//              : ListPeople = {
-//                      ...fullname[i].aboutUser
-//                      , fotto: fottoSS[i].max
-//                      , id: fullname[i].id
-//                      , friend: false
-//                };
-//              People.push(ListPeople)
-//           }
-//           f = z * x - x;
-//           s = x * z;
-//           allPeople = fullname.length;
-//           s > fullname.length ? s = fullname.length :
-//           f = parseInt(f);
-//           s = parseInt(s);
-//           people = People.slice(f, s);
-//           ServerMessage = {
-//             text: `${z} List People & ${allPeople} all People is corrected!`
-//            ,status: true
-//           }
-//         }else{
-//           ServerMessage = {
-//              text: " List People all People is not corrected!`!(empty or undefined)"
-//             ,status: false
-//           }
-//         }
-//
-//           res.json([people, allPeople,ServerMessage]);
-//           people = [];
-//           People = [];
-//     })
-//     //подписаться и отписаться
-//     .post((req,res,next)=>{
-//         UserID=parseInt(req.cookies.userLogin);
-//
-//         idProf=req.body.id;
-//         frienDD=req.body.friend;
-//
-//
-//             if(idProf && UserID){
-//                 f=fullname.filter(s=>(s.id===UserID))
-//                 fIndex=f[0].aboutUser.friend.indexOf(idProf,0)
-//                 fIndex < 0
-//                 ?fullname.filter(s=>(s.id===UserID)?s.aboutUser.friend.push(idProf):'')
-//
-//                 :fullname.filter(s=>(s.id===UserID)?s.aboutUser.friend.splice(fIndex,fIndex+1):'')
-//
-//                 ServerMessage = {
-//                     text: "User or ID profile or status Friend is corrected!`!(empty or undefined)"
-//                     ,status: true
-//                 }
-//             }else{
-//                 ServerMessage = {
-//                     text: "User or ID profile or status Friend is not corrected!`!(empty or undefined)"
-//                     ,status: false
-//                 }
-//             }
-//         res.json([ServerMessage])
-//
-//         });
-// ###############################################################
+        setting.command==='LEAVING-THE-PARTY' && Party.find({_id:setting.list}).then(r=>{
+                let f=[...r[0].ListPeople];
+                let d=f.indexOf(code);
+                f.splice(d,d+1);
+                r[0].ListPeople=[...f];
+                r[0].NumberOfPerson=r[0].ListPeople.length;
+                r[0].save()
+            })
+    });
