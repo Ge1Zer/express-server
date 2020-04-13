@@ -3,7 +3,7 @@
   "jwtSecret": "xyu",
   "mongoUri": "mongodb+srv://geizer:geizer@cluster-4fmlb.azure.mongodb.net/test?retryWrites=true&w=majority",
   "user": "odnolikii6991@gmail.com",
-  "refreshToken": "1//04T4-Im9Xuq4TCgYIARAAGAQSNwF-L9IrDYIe0oSOeVToEfPGY_9WEr945Stw3Kwex6aF933UaahgOXW03Hhct6UcAlytzDPMCn0",
+  "refreshToken":"1//04T4-Im9Xuq4TCgYIARAAGAQSNwF-L9IrDYIe0oSOeVToEfPGY_9WEr945Stw3Kwex6aF933UaahgOXW03Hhct6UcAlytzDPMCn0",
   "clientId":"876530271175-iq1muo58hcpl1asqcghdbl2rch4522rp.apps.googleusercontent.com",
   "clientSecret": "4J0x2C1m9KJrsTzNZqq2el0f"
 }

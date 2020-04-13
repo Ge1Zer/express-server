@@ -8,6 +8,7 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const nodemailer = require('nodemailer');
+const favicon = require('express-favicon');
 
 const app = express();
 
@@ -15,7 +16,6 @@ app.use(cookieParser ());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-const PORT = process.env.PORT || config.get('port') || 5000;
 const MONGO = config.get('mongoUri');
 const user =config.get('user')
 const refresh =config.get('refreshToken')
@@ -23,8 +23,9 @@ const client = config.get('clientId')
 const secret = config.get('clientSecret')
 
 app.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "http://localhost:3000"); // update to match the domain you will make the request from
+    res.header("Access-Control-Allow-Origin", "https://geizer6991.github.io");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    res.header("Access-Control-Allow-Credentials", true);
     next();
 });
 
@@ -55,7 +56,7 @@ async function start() {
             , useCreateIndex: true
             , autoIndex: false
         });
-        app.listen(PORT, console.log(`Server connected to mongoose and start on ${PORT} port`))
+        app.listen(5000, console.log(`Server connected to mongoose and start on port`))
     } catch (e) {
         console.log('server error', e.message);
         process.exit(1);
@@ -63,6 +64,9 @@ async function start() {
 }
 start();
 
+// app.get('/', function(req, res){
+//     res.redirect('/login');
+// });
 //###############################################################
 app.route('/login')
     .get((req, res) => {
@@ -83,7 +87,8 @@ app.route('/login')
         let Login = req.body.Login;
         let Password = req.body.Password;
         User.findOne({'Login': Login, 'Password': Password}).exec((err, user) => {
-            if (user) {
+            console.log(user)
+            if (user && user.RegistrationStatus.authorization) {
                 res.cookie('code', user._id, options);
                 res.send({
                     _id: user._id
@@ -102,6 +107,9 @@ app.route('/registration')
         let Password = req.body.Password;
         let Nickname = req.body.Nickname;
 
+        console.log(Login)
+        console.log(Password)
+        console.log(Nickname)
         let pass_gen=(len)=>{
             let string = 'abdehkimnopswxzABDEFGHKMNPOQRSTWXZ123456789';
             let str = '';
@@ -111,19 +119,21 @@ app.route('/registration')
             }
             return str;
         }
-
+        let key=pass_gen(4);
+        console.log(key)
         let mailOptions={
             from: `${Nickname} <${Login}>`,
             to: Login,
             subject: 'End of registration',
-            text: 'To complete your registration please follow the link',
-            html: 'This <a>ССЫЛКА НА ЗАВЕРШЕНИЕ РЕГИСТРАЦИИ</a>.',
+            text: 'This String is used to complete registration',
+            html: `This String is used to complete registration <p>${key}</p>.`,
         };
         transporter.sendMail(mailOptions, (err,info)=>{
             transporter.close()
         });
 
         User.findOne({'Login': Login, 'Password': Password}).exec((err, user) => {
+            console.log(user)
             if (!user) {
                 let NewUser = new User({
                     'Login': Login
@@ -156,7 +166,7 @@ app.route('/registration')
                     }
                     , 'RegistrationStatus':{
                         'authorization':false
-                        ,'key':0
+                        ,'key':key
                     }
                 });
                 NewUser.save( (err) => { !err ? console.log('Exelent') : console.log('err01', err) } );
@@ -166,16 +176,18 @@ app.route('/registration')
             }
         })
     });
-app.route('/protection/:key')
-    .get((res,req)=>{
-        User.findOne({RegistrationStatus: req.query.key}).exec((err, prof) => {
+app.route('/protection')
+    .post((req,res)=>{
+        User.findOne({'RegistrationStatus.key':req.body.key}).exec((err, prof) => {
             if(prof) {
-                propf.RegistrationStatus.key = 0;
+                prof.RegistrationStatus.key = 0;
                 prof.RegistrationStatus.authorization = true;
+
                 prof.save();
-                res.send(true)
+                res.send({status:true})
+
             }else{
-                res.send(false)
+                res.send({status:false})
             }
         });
 })

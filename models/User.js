@@ -32,7 +32,7 @@ let UserValidator = Schema({
     }
     , 'RegistrationStatus': {
         'authorization': Boolean
-        , 'key': Number
+        , 'key': String
     }
 });
 
